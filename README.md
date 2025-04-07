@@ -1,1 +1,1 @@
-This is my first practice with model FastApi 
+This is my first practice with web-frameworkFastApi 
