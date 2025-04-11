@@ -17,6 +17,7 @@ user_table = [
     User(first_name="user3", last_name="lastname_666", age=20),
 ]
 
+<<<<<<< HEAD
 # 1. Эндпоинт для вывода всех пользователей 
 @router.get("/all", response_model=List[User])
 async def get_all_users():
@@ -35,3 +36,5 @@ async def get_user_by_name(first_name: str):
     if not found_users:
         raise HTTPException(status_code=404, detail="User not found")
     return found_users
+=======
+>>>>>>> 4c7437c152d32eac1816cc8149624a99cc61c084
