@@ -1,8 +1,6 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 import uvicorn
-from pydantic import BaseModel
 from router import router
-from typing import List
 
 
 app = FastAPI()
