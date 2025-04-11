@@ -1,4 +1,3 @@
-from typing import List
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
@@ -17,24 +16,21 @@ user_table = [
     User(first_name="user3", last_name="lastname_666", age=20),
 ]
 
-<<<<<<< HEAD
 # 1. Эндпоинт для вывода всех пользователей 
-@router.get("/all", response_model=List[User])
-async def get_all_users():
+@router.get("/all", response_model=list[User])
+async def get_all_users() -> list[User]:
     return user_table
 
 # 2. Эндпоинт для создания нового пользователя
 @router.post("/create", response_model=User)
-async def create_user(user: User):
+async def create_user(user: User) -> User:
     user_table.append(user)
     return user
 
 # 3. Эндпоинт для поиска пользователя по имени
-@router.get("/get_by_name", response_model=List[User])
-async def get_user_by_name(first_name: str):
+@router.get("/get_by_name", response_model=list[User])
+async def get_user_by_name(first_name: str) -> list[User]: 
     found_users = [u for u in user_table if u.first_name == first_name]
     if not found_users:
         raise HTTPException(status_code=404, detail="User not found")
     return found_users
-=======
->>>>>>> 4c7437c152d32eac1816cc8149624a99cc61c084
