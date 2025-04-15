@@ -1,36 +1,43 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from sqlalchemy.orm import Session
 from pydantic import BaseModel
+from database import SessionLocal
+from models.user import User as DBUser
 
 router = APIRouter()
 
-# Дочерний класс для создания пользователя
-class User(BaseModel):
+# Pydantic модель для валидации данных
+class UserCreate(BaseModel):
     first_name: str
     last_name: str
     age: int
 
-# Имитация БД
-user_table = [
-    User(first_name="user1", last_name="last_name1", age=2135),
-    User(first_name="user2", last_name="last_name1", age=55),
-    User(first_name="user3", last_name="lastname_666", age=20),
-]
+# Зависимость для получения сессии
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
-# 1. Эндпоинт для вывода всех пользователей 
-@router.get("/all", response_model=list[User])
-async def get_all_users() -> list[User]:
-    return user_table
+# 1. Получить всех пользователей
+@router.get("/all", response_model=list[UserCreate])
+def get_all_users(db: Session = Depends(get_db)):
+    return db.query(DBUser).all()
 
-# 2. Эндпоинт для создания нового пользователя
-@router.post("/create", response_model=User)
-async def create_user(user: User) -> User:
-    user_table.append(user)
-    return user
+# 2. Создать пользователя
+@router.post("/create", response_model=UserCreate)
+def create_user(user: UserCreate, db: Session = Depends(get_db)):
+    db_user = DBUser(**user.dict())
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
 
-# 3. Эндпоинт для поиска пользователя по имени
-@router.get("/get_by_name", response_model=list[User])
-async def get_user_by_name(first_name: str) -> list[User]: 
-    found_users = [u for u in user_table if u.first_name == first_name]
-    if not found_users:
+# 3. Найти по имени
+@router.get("/get_by_name", response_model=list[UserCreate])
+def get_user_by_name(first_name: str, db: Session = Depends(get_db)):
+    users = db.query(DBUser).filter(DBUser.first_name == first_name).all()
+    if not users:
         raise HTTPException(status_code=404, detail="User not found")
-    return found_users
+    return users
