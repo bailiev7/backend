@@ -31,7 +31,6 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     db_user = DBUser(**user.dict())
     db.add(db_user)
     db.commit()
-    db.refresh(db_user)
     return db_user
 
 @user_router.get("/get_by_name", response_model=list[UserCreate])
@@ -59,7 +58,6 @@ def create_order(order: OrderCreate, db: Session = Depends(get_db)):
     db_order = DBOrder(**order.dict())
     db.add(db_order)
     db.commit()
-    db.refresh(db_order)
     return db_order
 
 @order_router.get("/get_by_name", response_model=list[OrderCreate])
