@@ -4,8 +4,8 @@ from database import engine, Base
 from router import user_router, order_router
 app = FastAPI()
 
-# Создание таблиц при старте
-Base.metadata.create_all(bind=engine)
+# Создание таблиц при старте#
+# Base.metadata.create_all(bind=engine)
 
 app.include_router(user_router)
 app.include_router(order_router)
