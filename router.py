@@ -46,7 +46,7 @@ order_router = APIRouter(prefix="/order")
 
 class OrderCreate(BaseModel):
     user_id: int
-    name: str
+    name: str   
     sum: int
 
 @order_router.get("/all", response_model=list[OrderCreate])
@@ -65,4 +65,14 @@ def get_order_by_name(name: str, db: Session = Depends(get_db)):
     orders = db.query(DBOrder).filter(DBOrder.name == name).all()
     if not orders:
         raise HTTPException(status_code=404, detail="Order not found")
+    return orders
+
+@order_router.get("/by-user", response_model=list[OrderCreate])
+def get_orders_by_user(user_id: int, db: Session = Depends(get_db)):
+    orders = (
+        db.query(DBOrder)
+        .join(DBUser, DBOrder.user_id == DBUser.id)
+        .filter(DBUser.id == user_id)
+        .all()
+    )
     return orders
