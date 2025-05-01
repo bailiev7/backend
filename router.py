@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from database import SessionLocal
 from models.user import User as DBUser
 from models.order import Order as DBOrder
-
+from sqlalchemy import select
 
 def get_db():
     db = SessionLocal()
@@ -68,11 +68,6 @@ def get_order_by_name(name: str, db: Session = Depends(get_db)):
     return orders
 
 @order_router.get("/by-user", response_model=list[OrderCreate])
-def get_orders_by_user(user_id: int, db: Session = Depends(get_db)):
-    orders = (
-        db.query(DBOrder)
-        .join(DBUser, DBOrder.user_id == DBUser.id)
-        .filter(DBUser.id == user_id)
-        .all()
-    )
-    return orders
+async def get_orders_by_user(user_id: int, session: Session = Depends(get_db)):
+    orders = select(DBOrder).join(DBUser, DBOrder.user_id == DBUser.id).where(DBUser.id == user_id)
+    return (await session.scalars(orders)).all()
