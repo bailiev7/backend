@@ -31,7 +31,6 @@ async def create_user(user: UserCreate, session: AsyncSession = Depends(get_asyn
     db_user = DBUser(**user.dict())
     session.add(db_user)
     await session.commit()
-    await session.refresh(db_user)
     return db_user
 
 @user_router.get("/get_by_name", response_model=list[UserCreate])
@@ -54,7 +53,6 @@ async def create_order(order: OrderCreate, session: AsyncSession = Depends(get_a
     db_order = DBOrder(**order.dict())
     session.add(db_order)
     await session.commit()
-    await session.refresh(db_order)
     return db_order
 
 @order_router.get("/get_by_name", response_model=list[OrderCreate])
