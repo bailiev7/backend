@@ -1,14 +1,16 @@
-from sqlalchemy.ext.asyncio import AsyncSession,create_async_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+from sqlalchemy.orm import declarative_base
 
 # Подключение к PostgreSQL
-SQLALCHEMY_DATABASE_URL = "postgresql+asyncpg://postgresql:bailiev@localhost/bailiev"
+SQLALCHEMY_DATABASE_URL = "postgresql+asyncpg://postgres:bailiev@localhost:5432/bailiev"
 
-engine = create_async_engine(SQLALCHEMY_DATABASE_URL, echo=True)
-AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 # Базовый класс
 Base = declarative_base()
 
-async def get_async_db():
-    async with AsyncSessionLocal() as session:
-        yield session
+engine = create_async_engine(SQLALCHEMY_DATABASE_URL,
+                             echo=True,
+                             pool_size=10,
+                             pool_pre_ping=True,
+                             max_overflow=0, future=True
+)
+async_session_maker = async_sessionmaker(engine, expire_on_commit=False)
