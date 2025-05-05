@@ -5,16 +5,21 @@ from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 from alembic import context
 
-config = context.config
-fileConfig(config.config_file_name)
+from database import Base, SQLALCHEMY_DATABASE_URL
+
 # --- Добавляем корень проекта в sys.path, чтобы импортировать database и models ---
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-# Импорт базы и моделей
-from database import Base
+SYNC_SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace(
+    "postgresql+asyncpg", "postgresql"
+)
+
+config = context.config
+config.set_main_option("sqlalchemy.url", SYNC_SQLALCHEMY_DATABASE_URL)
+fileConfig(config.config_file_name)
+
 from models.user import User
 from models.order import Order
-
 
 # Указываем метаданные для автогенерации миграций
 target_metadata = Base.metadata

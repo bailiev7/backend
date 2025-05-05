@@ -1,78 +1,75 @@
-from fastapi import APIRouter, HTTPException, Depends
-from sqlalchemy.orm import Session
-from pydantic import BaseModel
-from database import SessionLocal
+from fastapi import APIRouter, HTTPException
+from sqlalchemy import select
+from database import async_session_maker
 from models.user import User as DBUser
 from models.order import Order as DBOrder
+from pydantic import BaseModel
 
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-#For User
 user_router = APIRouter(prefix="/user")
+order_router = APIRouter(prefix="/order")
 
 class UserCreate(BaseModel):
     first_name: str
     last_name: str
     age: int
 
+class OrderCreate(BaseModel):
+    user_id: int
+    name: str
+    sum: int
+
+# USER ROUTES
+
 @user_router.get("/all", response_model=list[UserCreate])
-def get_all_users(db: Session = Depends(get_db)):
-    return db.query(DBUser).all()
+async def get_all_users():
+    stmt = select(DBUser)
+    async with async_session_maker() as session:
+        return (await session.scalars(stmt)).all()
 
 @user_router.post("/create", response_model=UserCreate)
-def create_user(user: UserCreate, db: Session = Depends(get_db)):
+async def create_user(user: UserCreate):
     db_user = DBUser(**user.dict())
-    db.add(db_user)
-    db.commit()
+    async with async_session_maker() as session:
+        session.add(db_user)
+        await session.commit()
     return db_user
 
 @user_router.get("/get_by_name", response_model=list[UserCreate])
-def get_user_by_name(first_name: str, db: Session = Depends(get_db)):
-    users = db.query(DBUser).filter(DBUser.first_name == first_name).all()
+async def get_user_by_name(last_name: str):
+    stmt = select(DBUser).where(DBUser.last_name == last_name)
+    async with async_session_maker() as session:
+        users = (await session.scalars(stmt)).all()
     if not users:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
     return users
-
-
-#For Order
-order_router = APIRouter(prefix="/order")
-
-class OrderCreate(BaseModel):
-    user_id: int
-    name: str   
-    sum: int
+    
+# ORDER ROUTES
 
 @order_router.get("/all", response_model=list[OrderCreate])
-def get_all_orders(db: Session = Depends(get_db)):
-    return db.query(DBOrder).all()
-
+async def get_all_orders():
+    stmt = select(DBOrder)
+    async with async_session_maker() as session:
+        return (await session.scalars(stmt)).all()
+    
 @order_router.post("/create", response_model=OrderCreate)
-def create_order(order: OrderCreate, db: Session = Depends(get_db)):
+async def create_order(order: OrderCreate):
     db_order = DBOrder(**order.dict())
-    db.add(db_order)
-    db.commit()
+    async with async_session_maker() as session:
+        session.add(db_order)
+        await session.commit()
     return db_order
 
 @order_router.get("/get_by_name", response_model=list[OrderCreate])
-def get_order_by_name(name: str, db: Session = Depends(get_db)):
-    orders = db.query(DBOrder).filter(DBOrder.name == name).all()
-    if not orders:
-        raise HTTPException(status_code=404, detail="Order not found")
-    return orders
-
+async def get_order_by_name(name: str):
+    stmt = select(DBOrder).where(DBOrder.name == name)
+    async with async_session_maker() as session:
+        users = (await session.scalars(stmt)).all()
+    if not users:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+    return users
+    
 @order_router.get("/by-user", response_model=list[OrderCreate])
-def get_orders_by_user(user_id: int, db: Session = Depends(get_db)):
-    orders = (
-        db.query(DBOrder)
-        .join(DBUser, DBOrder.user_id == DBUser.id)
-        .filter(DBUser.id == user_id)
-        .all()
-    )
-    return orders
+async def get_orders_by_user(user_id: int):
+    stmt = select(DBOrder).join(DBUser, DBOrder.user_id == DBUser.id).where(DBUser.id == user_id)
+    async with async_session_maker() as session:
+        return (await session.scalars(stmt)).all()
