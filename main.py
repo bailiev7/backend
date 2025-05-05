@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 import uvicorn
-from router import user_router, order_router
+from domain.user.router import user_router
+from domain.order.router import order_router
 
 
 app = FastAPI()
