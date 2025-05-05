@@ -36,8 +36,8 @@ async def create_user(user: UserCreate):
 
 @user_router.get("/get_by_name", response_model=list[UserCreate])
 async def get_user_by_name(last_name: str):
+    stmt = select(DBUser).where(DBUser.last_name == last_name)
     async with async_session_maker() as session:
-        stmt = select(DBUser).where(DBUser.last_name == last_name)
         users = (await session.scalars(stmt)).all()
     if not users:
         raise HTTPException(status_code=404, detail="Пользователь не найден")
@@ -61,8 +61,8 @@ async def create_order(order: OrderCreate):
 
 @order_router.get("/get_by_name", response_model=list[OrderCreate])
 async def get_order_by_name(name: str):
+    stmt = select(DBOrder).where(DBOrder.name == name)
     async with async_session_maker() as session:
-        stmt = select(DBOrder).where(DBOrder.name == name)
         users = (await session.scalars(stmt)).all()
     if not users:
         raise HTTPException(status_code=404, detail="Пользователь не найден")
@@ -70,6 +70,6 @@ async def get_order_by_name(name: str):
     
 @order_router.get("/by-user", response_model=list[OrderCreate])
 async def get_orders_by_user(user_id: int):
+    stmt = select(DBOrder).join(DBUser, DBOrder.user_id == DBUser.id).where(DBUser.id == user_id)
     async with async_session_maker() as session:
-        stmt = select(DBOrder).join(DBUser, DBOrder.user_id == DBUser.id).where(DBUser.id == user_id)
         return (await session.scalars(stmt)).all()
