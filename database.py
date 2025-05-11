@@ -12,5 +12,5 @@ engine = create_async_engine(SQLALCHEMY_DATABASE_URL,
                              pool_size=10,
                              pool_pre_ping=True,
                              max_overflow=0, future=True
-)
+                             )
 async_session_maker = async_sessionmaker(engine, expire_on_commit=False)
