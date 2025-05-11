@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
 from database import async_session_maker
 from models.user import User as DBUser
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel
 from models.role_enum import RoleEnum
 from models.user_role import UserRole
 
@@ -11,14 +11,7 @@ user_router = APIRouter(prefix="/user")
 
 class SetUserRoleRequest(BaseModel):
     user_id: int
-    role: str
-
-    @field_validator("role")
-    def normalize_role(cls, value: str) -> str:
-        value = value.lower()
-        if value not in ("admin", "default_user"):
-            raise ValueError("role must be 'admin' or 'default_user'")
-        return value
+    role: RoleEnum
 
 
 class UserCreate(BaseModel):
@@ -70,6 +63,5 @@ async def set_role(data: SetUserRoleRequest):
             raise HTTPException(status_code=404, detail="Роль не найдена")
         user.role_id = role.id
         await session.commit()
-        await session.refresh(user)
 
     return {"message": f"Пользователю {user.first_name} назначена роль {data.role.value}"}
